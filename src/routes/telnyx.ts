@@ -32,7 +32,6 @@ export const telnyxWebhook = async (req: Request, res: Response) => {
         console.warn('Ignoring call.initiated for non-inbound or Vapi leg:', callControlId);
         return;
       }
-
       await answerCall(callControlId);
       return;
     }
@@ -42,7 +41,6 @@ export const telnyxWebhook = async (req: Request, res: Response) => {
         console.warn('Ignoring call.answered for non-inbound or Vapi leg:', callControlId);
         return;
       }
-
       await transferCallToVapiAgent(event.data, callControlId);
       return;
     }

@@ -1,4 +1,4 @@
-# 🧠 AI Voice Assistant SaaS (MVP)
+# 🧠 AI Voice Assistant SaaS
 
 This project is an MVP of an AI-powered voice assistant.
 
@@ -6,7 +6,7 @@ The system answers phone calls, collects customer orders using AI, and sends the
 
 ---
 
-# 🚀 MVP Scope
+# 🚀 Scope
 
 The goal is to build the simplest working system:
 

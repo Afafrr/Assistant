@@ -3,6 +3,11 @@ import { requireVapiSipUri } from '../providers/vapi';
 
 const VAPI_SIP_DOMAIN = '@sip.vapi.ai';
 
+const customHeaders: Array<{ name: string; value: string }> = [
+  { name: 'X-company_name', value: 'BEST COAL POL' },
+  // { name: 'X-Products', value: 'Eco Coal 1200 zl; Premium Coal 1500 zl' },
+];
+
 export const isVapiSipDestination = (destination?: string) => Boolean(destination && destination.toLowerCase().includes(VAPI_SIP_DOMAIN));
 
 export const answerCall = async (callControlId: string) => {
@@ -22,7 +27,13 @@ export const transferCallToVapiAgent = async (data: any, callControlId: string) 
     to: sipUri,
     from,
     command_id: `transfer-to-vapi-${callControlId}`,
+    custom_headers: customHeaders,
   });
 
-  console.log('Transferred call to Vapi SIP URI:', { callControlId, sipUri, from });
+  console.log('Transferred call to Vapi SIP URI:', {
+    callControlId,
+    sipUri,
+    from,
+    customHeaderNames: customHeaders.map((header) => header.name),
+  });
 };
