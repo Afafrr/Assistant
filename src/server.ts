@@ -1,15 +1,16 @@
-import 'dotenv/config';
 import express from 'express';
 import { telnyxWebhook } from './modules/calls/telnyx-webhook.controller';
+import { verifyWebhookSignature } from './integrations/telnyx/telnyx.middleware';
 
 const app = express();
-app.use(express.json());
-
 app.get('/', (_, res) => {
   res.send('Server running');
 });
 
-app.post('/webhooks/telnyx', telnyxWebhook);
+// Raw body required for signature verification
+app.post('/webhooks/telnyx', express.raw({ type: 'application/json' }), verifyWebhookSignature, telnyxWebhook);
+
+app.use(express.json());
 
 app.listen(3000, () => {
   console.log('http://localhost:3000');

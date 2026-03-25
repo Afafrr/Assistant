@@ -1,3 +1,6 @@
+### Health
+GET  http://localhost:3000/
+
 ### Test Telnyx webhook locally
 POST http://localhost:3000/webhooks/telnyx
 Content-Type: application/json

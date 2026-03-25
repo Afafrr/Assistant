@@ -1,7 +1,9 @@
+import { env } from '../../config/env';
+
 const VAPI_SIP_DOMAIN = '@sip.vapi.ai';
 
 export const requireVapiSipUri = () => {
-  const sipUri = process.env.VAPI_SIP_URI?.trim();
+  const sipUri = env.VAPI_SIP_URI.trim();
 
   if (!sipUri) {
     throw new Error('Missing VAPI_SIP_URI');

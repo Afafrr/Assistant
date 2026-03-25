@@ -1,13 +1,9 @@
 import Telnyx from 'telnyx';
+import { env } from '../../config/env';
 
 export const createTelnyxClient = () => {
-  const apiKey = process.env.TELNYX_API_KEY;
-
-  if (!apiKey) {
-    throw new Error(
-      'Missing Telnyx API key. Set TELNYX_API_KEY (preferred) or TELNYX_KEY in .env',
-    );
-  }
-
-  return new Telnyx({ apiKey });
+  return new Telnyx({
+    apiKey: env.TELNYX_API_KEY,
+    publicKey: env.TELNYX_PUBLIC_KEY,
+  });
 };
