@@ -1,6 +1,8 @@
 import { isVapiSipDestination } from '../../integrations/vapi/vapi.utils';
+import { CallStatus } from '../../generated/prisma/client';
 import { findPhoneNumber } from '../phone/phone.repository';
-import { createCallRecord } from './call.repository';
+import { parseDurationSeconds, parseEndedAt, resolveHangupStatus } from './utils/call-event.utils';
+import { createCallRecord, updateCallRecord } from './call.repository';
 import { answerCall } from './handlers/call-actions.handler';
 import { transferCallToVapiAgent } from './handlers/call-transfer.handler';
 
@@ -48,7 +50,7 @@ export const handleTelnyxEvent = async (event: any) => {
       callControlId,
       fromPhoneE164: fromPhone,
       toPhoneE164: destination,
-      status: 'in_progress',
+      status: CallStatus.in_progress,
     });
 
     if (!createResult.created) {
@@ -66,12 +68,36 @@ export const handleTelnyxEvent = async (event: any) => {
       console.warn('Ignoring call.answered for non-inbound or Vapi leg:', callControlId);
       return;
     }
+
+    const updateResult = await updateCallRecord(callControlId, {
+      status: CallStatus.in_progress,
+    });
+    if (!updateResult.updated) {
+      console.warn('Call record update skipped:', updateResult.reason, callControlId);
+      return;
+    }
+
     await transferCallToVapiAgent(event.data, callControlId);
     return;
   }
 
   if (eventType === 'call.hangup') {
-    console.log('Call ended:', callControlId);
+    const status = resolveHangupStatus(payload);
+    const endedAt = parseEndedAt(payload);
+    const durationSeconds = parseDurationSeconds(payload);
+
+    const updateResult = await updateCallRecord(callControlId, {
+      status,
+      endedAt,
+      durationSeconds,
+    });
+
+    if (!updateResult.updated) {
+      console.warn('Call record update skipped:', updateResult.reason, callControlId);
+      return;
+    }
+
+    console.log('Call ended:', { callControlId, status, endedAt, durationSeconds });
     return;
   }
 

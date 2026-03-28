@@ -1,5 +1,5 @@
 import { prisma } from '../../lib/prisma';
-import { isPrismaUniqueConstraint } from '../../lib/prisma-errors';
+import { isPrismaRecordNotFound, isPrismaUniqueConstraint } from '../../lib/prisma-errors';
 import { CallCreateInput } from '../../generated/prisma/models';
 
 type CreateCallRecordInput = Omit<CallCreateInput, 'tenant' | 'phoneNumber'> & {
@@ -7,6 +7,12 @@ type CreateCallRecordInput = Omit<CallCreateInput, 'tenant' | 'phoneNumber'> & {
   phoneNumberId: string;
 };
 type CreateCallRecordResult = { created: false; reason: string } | { created: true; tenantId: string; phoneNumberId: string };
+type UpdateCallRecordInput = {
+  status: CreateCallRecordInput['status'];
+  endedAt?: Date | string;
+  durationSeconds?: number;
+};
+type UpdateCallRecordResult = { updated: false; reason: string } | { updated: true };
 
 export async function createCallRecord(data: CreateCallRecordInput): Promise<CreateCallRecordResult> {
   if (!data.tenantId || !data.phoneNumberId || !data.fromPhoneE164 || !data.toPhoneE164) {
@@ -45,5 +51,37 @@ export async function createCallRecord(data: CreateCallRecordInput): Promise<Cre
     created: true,
     tenantId: call.tenantId,
     phoneNumberId: call.phoneNumberId,
+  };
+}
+
+export async function updateCallRecord(callControlId: string, data: UpdateCallRecordInput): Promise<UpdateCallRecordResult> {
+  if (!data.status) {
+    return {
+      updated: false,
+      reason: 'missing_required_fields',
+    };
+  }
+
+  try {
+    await prisma.call.update({
+      where: { callControlId },
+      data: {
+        status: data.status,
+        endedAt: data.endedAt,
+        durationSeconds: data.durationSeconds,
+      },
+    });
+  } catch (error: any) {
+    if (isPrismaRecordNotFound(error)) {
+      return {
+        updated: false,
+        reason: 'call_not_found',
+      };
+    }
+    throw error;
+  }
+
+  return {
+    updated: true,
   };
 }
