@@ -46,6 +46,8 @@ prisma/
 - `controller -> service -> handlers` flow inside a module.
 - Integration clients are created in `integrations/*`, not in controller files.
 
+AI assistant coding conventions live in `.github/copilot-instructions.md`.
+
 ## Runtime flow (Telnyx webhook)
 
 Endpoint:
