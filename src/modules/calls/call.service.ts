@@ -1,7 +1,7 @@
 import { isVapiSipDestination } from '../../integrations/vapi/vapi.utils';
 import { CallStatus } from '../../generated/prisma/client';
 import { findPhoneNumber } from '../phone/phone.repository';
-import { parseDurationSeconds, parseEndedAt, resolveHangupStatus } from './utils/call-event.utils';
+import { mapCallStatus, parseDurationSeconds, parseEndedAt } from './utils/call-event.utils';
 import { createCallRecord, updateCallRecord } from './call.repository';
 import { answerCall } from './handlers/call-actions.handler';
 import { transferCallToVapiAgent } from './handlers/call-transfer.handler';
@@ -20,13 +20,6 @@ export const handleTelnyxEvent = async (event: any) => {
     console.warn('TELNYX EVENT missing call_control_id:', eventType);
     return;
   }
-
-  console.log('Telnyx event:', {
-    eventType,
-    callControlId,
-    direction,
-    destination,
-  });
 
   if (eventType === 'call.initiated') {
     if (!isInboundLeg || isVapiLeg) {
@@ -50,7 +43,7 @@ export const handleTelnyxEvent = async (event: any) => {
       callControlId,
       fromPhoneE164: fromPhone,
       toPhoneE164: destination,
-      status: CallStatus.in_progress,
+      status: CallStatus.initiated,
     });
 
     if (!createResult.created) {
@@ -82,10 +75,14 @@ export const handleTelnyxEvent = async (event: any) => {
   }
 
   if (eventType === 'call.hangup') {
-    const status = resolveHangupStatus(payload);
+    const status = mapCallStatus({
+      provider: 'telnyx',
+      eventType,
+      payload,
+      context: { isVapiLeg },
+    });
     const endedAt = parseEndedAt(payload);
     const durationSeconds = parseDurationSeconds(payload);
-
     const updateResult = await updateCallRecord(callControlId, {
       status,
       endedAt,
@@ -93,6 +90,10 @@ export const handleTelnyxEvent = async (event: any) => {
     });
 
     if (!updateResult.updated) {
+      if (updateResult.reason === 'call_not_found' && isVapiLeg) {
+        console.log('Ignoring call.hangup for untracked Vapi leg:', callControlId);
+        return;
+      }
       console.warn('Call record update skipped:', updateResult.reason, callControlId);
       return;
     }
