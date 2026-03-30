@@ -4,7 +4,7 @@ import { findPhoneNumber } from '../phone/phone.repository';
 import { mapCallStatus, parseDurationSeconds, parseEndedAt } from './utils/call-event.utils';
 import { createCallRecord, updateCallRecord } from './call.repository';
 import { answerCall } from './handlers/call-actions.handler';
-import { transferCallToVapiAgent } from './handlers/call-transfer.handler';
+import { transferCallToAgent } from './handlers/call-transfer.handler';
 
 export const handleTelnyxEvent = async (event: any) => {
   const eventType = event?.data?.event_type;
@@ -70,7 +70,7 @@ export const handleTelnyxEvent = async (event: any) => {
       return;
     }
 
-    await transferCallToVapiAgent(event.data, callControlId);
+    await transferCallToAgent(event.data, callControlId);
     return;
   }
 

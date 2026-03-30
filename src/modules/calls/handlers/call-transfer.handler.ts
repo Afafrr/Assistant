@@ -6,7 +6,7 @@ const customHeaders: Array<{ name: string; value: string }> = [
   // { name: 'X-Products', value: 'Eco Coal 1200 zl; Premium Coal 1500 zl' },
 ];
 
-export const transferCallToVapiAgent = async (data: any, callControlId: string) => {
+export const transferCallToAgent = async (data: any, callControlId: string) => {
   const client = createTelnyxClient();
   const sipUri = requireVapiSipUri();
   const payload = data?.payload;
@@ -15,11 +15,11 @@ export const transferCallToVapiAgent = async (data: any, callControlId: string) 
   await client.calls.actions.transfer(callControlId, {
     to: sipUri,
     from,
-    command_id: `transfer-to-vapi-${callControlId}`,
+    command_id: `transfer-to-agent-${callControlId}`,
     custom_headers: customHeaders,
   });
 
-  console.log('Transferred call to Vapi SIP URI:', {
+  console.log('Transferred call to agent SIP URI:', {
     callControlId,
     sipUri,
     from,
