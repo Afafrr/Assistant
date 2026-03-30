@@ -5,6 +5,7 @@ This project is an MVP backend for handling inbound Telnyx calls and transferrin
 ## Current scope
 
 - Receive Telnyx call webhooks.
+- Receive Vapi call webhooks.
 - Answer inbound calls.
 - Transfer eligible calls to Vapi SIP URI.
 - Keep architecture simple and modular for upcoming DB-backed call/order flows.
@@ -24,6 +25,7 @@ src/
   modules/
     calls/
       telnyx-webhook.controller.ts
+      vapi-webhook.controller.ts
       call.service.ts
       handlers/
         call-actions.handler.ts
@@ -54,6 +56,7 @@ Endpoint:
 
 ```text
 POST /webhooks/telnyx
+POST /webhooks/vapi
 ```
 
 Flow:
@@ -63,6 +66,7 @@ Flow:
 3. For inbound non-Vapi call legs:
 4. `call.initiated` -> answer call.
 5. `call.answered` -> transfer to Vapi SIP URI.
+6. `Vapi webhook` -> update tracked call status/duration using call control ID from metadata or SIP headers.
 
 ## Setup
 
@@ -112,15 +116,21 @@ Read from:
 
 ## Local webhook test
 
-Use `telnyx-webhook.http` or send:
+Use `telnyx-webhook.http` and `vapi-webhook.http` or send:
 
 ```http
 POST http://localhost:3000/webhooks/telnyx
 Content-Type: application/json
 ```
 
+```http
+POST http://localhost:3000/webhooks/vapi
+Content-Type: application/json
+```
+
 ## Notes and limitations
 
 - Telnyx webhook signature verification is implemented in middleware and enforced before event handling.
+- Vapi webhook signature verification is not implemented yet.
 - Event payload parsing is currently permissive (`any`) and should be tightened with explicit types/validation.
 - No automated tests yet.

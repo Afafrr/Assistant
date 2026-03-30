@@ -89,7 +89,7 @@ export const handleTelnyxEvent = async (event: any) => {
       endedAt,
       durationSeconds,
     });
-    console.log({ payload });
+
     if (!updateResult.updated) {
       if (updateResult.reason === 'call_not_found' && isVapiLeg) {
         console.log('Ignoring call.hangup for untracked Vapi leg:', callControlId);
@@ -102,6 +102,8 @@ export const handleTelnyxEvent = async (event: any) => {
     console.log('Call ended:', { callControlId, status, endedAt, durationSeconds });
     return;
   }
+};
 
-  console.log('TELNYX EVENT:', eventType);
+export const handleVapiEvent = async (event: any) => {
+  console.log('VAPI EVENT:', event);
 };
