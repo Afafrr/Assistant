@@ -1,5 +1,29 @@
 @baseUrl = http://localhost:3000
 
+# To generate valid signature values run:
+# node -e "
+#   const {createHmac}=require('crypto');
+#   const body=JSON.stringify({message:{type:'status-update',call:{id:'test-call-id'}}});
+#   const ts=String(Date.now());
+#   const sig=createHmac('sha256','YOUR_SECRET').update(ts+'.'+body).digest('hex');
+#   console.log('timestamp:',ts);
+#   console.log('x-signature:',sig);
+#   console.log('body:',body);
+# "
+
+@vapiTimestamp = 1775047109910
+@vapiSignature = 0bb24e024a9fee29e7431e2e2810a0fcab5f691363ea0823a966276df928f00f
+
+### Test VAPI webhook signature verification
+POST {{baseUrl}}/webhooks/vapi
+Content-Type: application/json
+x-timestamp: {{vapiTimestamp}}
+x-signature: {{vapiSignature}}
+
+{"message":{"type":"status-update","call":{"id":"test-call-id"}}}
+
+###
+
 ### Simulate Vapi call status update (dev-only)
 POST {{baseUrl}}/webhooks/vapi/dev
 Content-Type: application/json
