@@ -1,5 +1,6 @@
 import { prisma } from '../../lib/prisma';
 import { isPrismaRecordNotFound, isPrismaUniqueConstraint } from '../../lib/prisma-errors';
+import type { Call, Prisma } from '../../generated/prisma/client';
 import { CallCreateInput } from '../../generated/prisma/models';
 
 type CreateCallRecordInput = Omit<CallCreateInput, 'tenant' | 'phoneNumber'> & {
@@ -55,7 +56,7 @@ export async function createCallRecord(data: CreateCallRecordInput): Promise<Cre
   };
 }
 
-export async function updateCallRecord(callControlId: string, data: UpdateCallRecordInput): Promise<UpdateCallRecordResult> {
+async function updateCallRecordByWhere(where: Prisma.CallWhereUniqueInput, data: UpdateCallRecordInput): Promise<UpdateCallRecordResult> {
   if (!data.status) {
     return {
       updated: false,
@@ -65,7 +66,7 @@ export async function updateCallRecord(callControlId: string, data: UpdateCallRe
 
   try {
     await prisma.call.update({
-      where: { callControlId },
+      where,
       data: {
         status: data.status,
         endedAt: data.endedAt,
@@ -85,4 +86,18 @@ export async function updateCallRecord(callControlId: string, data: UpdateCallRe
   return {
     updated: true,
   };
+}
+
+export async function updateCallRecordByControlId(callControlId: string, data: UpdateCallRecordInput): Promise<UpdateCallRecordResult> {
+  return updateCallRecordByWhere({ callControlId }, data);
+}
+
+export async function updateCallRecordById(callId: string, data: UpdateCallRecordInput): Promise<UpdateCallRecordResult> {
+  return updateCallRecordByWhere({ id: callId }, data);
+}
+
+export async function findCallByControlId(callControlId: string): Promise<Call | null> {
+  return prisma.call.findUnique({
+    where: { callControlId },
+  });
 }

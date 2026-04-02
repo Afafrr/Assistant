@@ -2,9 +2,12 @@ import { isVapiSipDestination } from '../../integrations/vapi/vapi.utils';
 import { CallStatus } from '../../generated/prisma/client';
 import { findPhoneNumber } from '../phone/phone.repository';
 import { mapCallStatus, parseDurationSeconds, parseEndedAt, parseStartedAt } from './utils/call-event.utils';
-import { createCallRecord, updateCallRecord } from './call.repository';
+import { createCallRecord, updateCallRecordByControlId, updateCallRecordById, findCallByControlId } from './call.repository';
 import { answerCall } from './handlers/call-actions.handler';
 import { transferCallToAgent } from './handlers/call-transfer.handler';
+import { handleOrderToolCalls } from '../orders/order.service';
+import { createOrderRecord } from '../orders/order.repository';
+import { logIncomingRequest } from '../../lib/file-logger';
 
 export const handleTelnyxEvent = async (event: any) => {
   const eventType = event?.data?.event_type;
@@ -62,7 +65,7 @@ export const handleTelnyxEvent = async (event: any) => {
       return;
     }
 
-    const updateResult = await updateCallRecord(callControlId, {
+    const updateResult = await updateCallRecordByControlId(callControlId, {
       status: CallStatus.in_progress,
     });
     if (!updateResult.updated) {
@@ -83,7 +86,7 @@ export const handleTelnyxEvent = async (event: any) => {
     });
     const endedAt = parseEndedAt(payload, event?.data);
     const durationSeconds = parseDurationSeconds(payload);
-    const updateResult = await updateCallRecord(callControlId, {
+    const updateResult = await updateCallRecordByControlId(callControlId, {
       status,
       endedAt,
       durationSeconds,
@@ -104,14 +107,9 @@ export const handleTelnyxEvent = async (event: any) => {
 };
 
 export const handleVapiEvent = async (event: any) => {
+  logIncomingRequest(event);
   const message = event?.message;
-  const messages = message?.messages;
-  const toolCalls = Array.isArray(messages) ? messages.filter((msg) => msg?.role === 'tool_calls' && Array.isArray(msg?.toolCalls)).flatMap((msg) => msg.toolCalls) : [];
-
-  if (toolCalls.length > 0) {
-    console.log('VAPI tool calls:', toolCalls);
-  }
-
+  const type = message?.type;
   const callControlId =
     message?.call?.metadata?.telnyx_call_control_id ??
     message?.call?.transport?.sip?.headers?.['X-telnyx-call-control-id'] ??
@@ -129,7 +127,7 @@ export const handleVapiEvent = async (event: any) => {
     call_duration: message?.call_duration ?? message?.callDuration,
   });
 
-  const updateResult = await updateCallRecord(callControlId, {
+  const updateResult = await updateCallRecordByControlId(callControlId, {
     status,
     durationSeconds,
   });
