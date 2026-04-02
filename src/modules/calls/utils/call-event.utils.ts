@@ -106,18 +106,13 @@ const parseIsoDate = (value: unknown): string | undefined => {
 
 export const parseStartedAt = (payload: any, eventData?: any): string | undefined =>
   parseIsoDate(
-    payload?.start_time ??
-      payload?.started_at ??
-      payload?.startTime ??
-      payload?.timestamp ??
-      eventData?.occurred_at ??
-      eventData?.occurredAt ??
-      eventData?.timestamp,
+    payload?.start_time ?? payload?.started_at ?? payload?.startTime ?? payload?.timestamp ?? eventData?.occurred_at ?? eventData?.occurredAt ?? eventData?.timestamp,
   );
 
 export const parseEndedAt = (payload: any, eventData?: any): string | undefined =>
   parseIsoDate(
-    payload?.ended_at ??
+    payload?.endedAt ??
+      payload?.ended_at ??
       payload?.end_time ??
       payload?.hangup_at ??
       payload?.endTime ??

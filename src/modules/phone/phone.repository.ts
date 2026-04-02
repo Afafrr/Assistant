@@ -8,7 +8,7 @@ export async function findPhoneNumber(phoneNumber: string): Promise<PhoneNumberM
       isActive: true,
     },
   });
-  console.log('Found phone number record:', record);
+
   if (!record) {
     return null;
   }
