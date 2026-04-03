@@ -60,18 +60,11 @@ const mapTelnyxHangupStatus = (payload: any, context?: HangupStatusMappingContex
 const isVapiErrorReason = (reason: string): boolean => includesAny(reason, ['error', 'failed', 'pipeline-error', 'worker-died', 'worker-shutdown']);
 
 const mapVapiStatus = (payload: any): CallStatus => {
-  const status = String(payload?.status ?? payload?.call?.status ?? '').toLowerCase();
+  // const type = String(payload?.status ?? payload?.call?.status ?? '').toLowerCase();
   const endedReason = String(payload?.endedReason ?? payload?.ended_reason ?? payload?.call?.endedReason ?? '').toLowerCase();
-
-  const statusFromMap = VAPI_STATUS_MAP.get(status);
+  const statusFromMap = VAPI_ENDED_REASON_MAP.get(endedReason);
   if (statusFromMap) return statusFromMap;
-
-  if (status === 'ended' || endedReason) {
-    const reasonStatus = VAPI_ENDED_REASON_MAP.get(endedReason);
-    if (reasonStatus) return reasonStatus;
-    if (isVapiErrorReason(endedReason)) return CallStatus.failed_ai;
-    return CallStatus.ended_by_user;
-  }
+  if (isVapiErrorReason(endedReason)) return CallStatus.failed_ai;
 
   return CallStatus.failed;
 };

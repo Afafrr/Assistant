@@ -6,7 +6,6 @@ import { createCallRecord, updateCallRecordByControlId, updateCallRecordById, fi
 import { answerCall } from './handlers/call-actions.handler';
 import { transferCallToAgent } from './handlers/call-transfer.handler';
 import { handleOrderToolCalls } from '../orders/order.service';
-import { createOrderRecord } from '../orders/order.repository';
 import { logIncomingRequest } from '../../lib/file-logger';
 
 export const handleTelnyxEvent = async (event: any) => {
@@ -116,26 +115,30 @@ export const handleVapiEvent = async (event: any) => {
     message?.call?.phoneCallProviderDetails?.sip?.headers?.['X-telnyx-call-control-id'];
 
   if (!callControlId) {
-    console.warn('VAPI EVENT missing telnyx call control id:', message?.type);
+    console.warn('VAPI EVENT missing call_control_id in message:', type);
     return;
   }
 
-  const status = mapCallStatus({ provider: 'vapi', payload: message });
-  const durationSeconds = parseDurationSeconds({
-    ...message,
-    duration_seconds: message?.duration_seconds ?? message?.durationSeconds ?? message?.call?.durationSeconds,
-    call_duration: message?.call_duration ?? message?.callDuration,
-  });
+  await handleOrderToolCalls(callControlId, message);
 
-  const updateResult = await updateCallRecordByControlId(callControlId, {
-    status,
-    durationSeconds,
-  });
+  if (type === 'end-of-call-report') {
+    const call = await findCallByControlId(callControlId);
+    if (!call) {
+      console.warn('No call record found for VAPI event with call_control_id:', callControlId);
+      return;
+    }
+    const durationSeconds = message.durationSeconds;
+    const status = mapCallStatus({ provider: 'vapi', payload: message });
 
-  if (!updateResult.updated) {
-    console.warn('VAPI call update skipped:', updateResult.reason, callControlId);
-    return;
+    const updateResult = await updateCallRecordById(call.id, {
+      status,
+      durationSeconds,
+    });
+
+    console.log('VAPI call updated:', { callId: call.id, status, durationSeconds });
+    if (!updateResult.updated) {
+      console.warn('VAPI call update skipped:', updateResult.reason, call.id);
+      return;
+    }
   }
-
-  console.log('VAPI call updated:', { callControlId, status, durationSeconds });
 };
