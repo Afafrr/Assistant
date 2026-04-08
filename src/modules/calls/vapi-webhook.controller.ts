@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { handleVapiEvent } from './call.service';
+import { handleVapiEvent } from './vapi-call.service';
 
 export const vapiWebhook = async (req: Request, res: Response) => {
   res.json({ success: true });

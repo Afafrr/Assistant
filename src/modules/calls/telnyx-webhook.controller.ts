@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { handleTelnyxEvent } from './call.service';
+import { handleTelnyxEvent } from './telnyx-call.service';
 
 export const telnyxWebhook = async (req: Request, res: Response) => {
   res.sendStatus(200);
