@@ -1,6 +1,7 @@
 import { CallStatus } from '../../generated/prisma/client';
 import { isVapiSipDestination } from '../../integrations/vapi/vapi.utils';
 import { findPhoneNumber } from '../phone/phone.repository';
+import { findPromptConfigByTenantId } from '../tenants/tenant-prompt-config.repository';
 import { createCallRecord, updateCallRecordByControlId } from './call.repository';
 import { answerCall } from './handlers/call-actions.handler';
 import { transferCallToAgent } from './handlers/call-transfer.handler';
@@ -60,7 +61,12 @@ const handleAnsweredEvent = async (event: any, callControlId: string, isInboundL
     return;
   }
 
-  await transferCallToAgent(event.data, callControlId);
+  const promptConfig = await findPromptConfigByTenantId(updateResult.tenantId);
+  if (!promptConfig) {
+    console.warn('No prompt config found for tenant, transferring without agent headers:', updateResult.tenantId);
+  }
+
+  await transferCallToAgent(event.data, callControlId, promptConfig);
 };
 
 const handleHangupEvent = async (event: any, callControlId: string, isVapiLeg: boolean) => {

@@ -13,7 +13,7 @@ type UpdateCallRecordInput = {
   endedAt?: Date | string;
   durationSeconds?: number;
 };
-type UpdateCallRecordResult = { updated: false; reason: string } | { updated: true };
+type UpdateCallRecordResult = { updated: false; reason: string } | { updated: true; tenantId: string };
 
 export async function createCallRecord(data: CreateCallRecordInput): Promise<CreateCallRecordResult> {
   if (!data.tenantId || !data.phoneNumberId || !data.fromPhoneE164 || !data.toPhoneE164 || !data.startedAt) {
@@ -64,8 +64,9 @@ async function updateCallRecordByWhere(where: Prisma.CallWhereUniqueInput, data:
     };
   }
 
+  let call;
   try {
-    await prisma.call.update({
+    call = await prisma.call.update({
       where,
       data: {
         status: data.status,
@@ -85,6 +86,7 @@ async function updateCallRecordByWhere(where: Prisma.CallWhereUniqueInput, data:
 
   return {
     updated: true,
+    tenantId: call.tenantId,
   };
 }
 
