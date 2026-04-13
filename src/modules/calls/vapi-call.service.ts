@@ -1,4 +1,3 @@
-import { logIncomingRequest } from '../../lib/file-logger';
 import { handleOrderToolCalls } from '../orders/order.service';
 import { findCallByControlId, updateCallRecordByControlId, updateCallRecordById } from './call.repository';
 import { mapCallStatus } from './utils/call-event.utils';

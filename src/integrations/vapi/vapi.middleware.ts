@@ -4,7 +4,7 @@ import { env } from '../../config/env';
 
 export const verifyVapiWebhookSignature = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const rawBody = req.body.toString();
+    const rawBody = req.body ? req.body.toString() : '';
     const signature = req.headers['x-signature'] as string;
     const timestamp = req.headers['x-timestamp'] as string;
 
@@ -36,7 +36,7 @@ export const verifyVapiWebhookSignature = async (req: Request, res: Response, ne
       return res.sendStatus(403);
     }
 
-    req.body = JSON.parse(rawBody);
+    req.body = rawBody ? JSON.parse(rawBody) : undefined;
     next();
   } catch (error) {
     console.error('VAPI webhook signature verification failed:', error);
