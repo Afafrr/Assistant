@@ -12,5 +12,5 @@ export const createOrderFromToolCall = async (agentCallId: string, data: SaveOrd
     return { created: false, reason: 'call_not_found' };
   }
 
-  return createOrderRecord(call.id, call.tenantId, data as CreateOrderRecordInput);
+  return createOrderRecord(call.id, call.tenantId, call.fromPhoneE164, data as CreateOrderRecordInput);
 };

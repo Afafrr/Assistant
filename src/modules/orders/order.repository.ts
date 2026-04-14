@@ -8,7 +8,7 @@ export type CreateOrderRecordResult = { created: true; orderId: string } | { cre
 export type UpdateOrderRecordInput = Pick<OrderCreateInput, 'status' | 'customerName' | 'customerPhone' | 'product' | 'amount_tons' | 'address'>;
 export type UpdateOrderRecordResult = { updated: true } | { updated: false; reason: 'missing_required_fields' | 'order_not_found' };
 
-export async function createOrderRecord(callId: string, tenantId: string, data: CreateOrderRecordInput): Promise<CreateOrderRecordResult> {
+export async function createOrderRecord(callId: string, tenantId: string, customerPhone: string, data: CreateOrderRecordInput): Promise<CreateOrderRecordResult> {
   if (!callId || !tenantId) {
     return {
       created: false,
@@ -21,6 +21,7 @@ export async function createOrderRecord(callId: string, tenantId: string, data: 
       data: {
         tenant: { connect: { id: tenantId } },
         call: { connect: { id: callId } },
+        customerPhone,
         ...data,
       },
       select: {

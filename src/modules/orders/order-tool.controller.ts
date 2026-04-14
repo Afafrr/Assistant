@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { createOrderFromToolCall } from './order.service';
-import { logIncomingRequest } from '../../lib/file-logger';
 
 export const orderToolWebhook = async (req: Request, res: Response) => {
   console.log('[TOOL - order]');
