@@ -21,7 +21,8 @@
     "dotenv": "^16.6.1",
     "express": "^5.2.1",
     "prisma": "^7.5.0",
-    "telnyx": "^6.23.0"
+    "telnyx": "^6.23.0",
+    "ws": "^8.20.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
